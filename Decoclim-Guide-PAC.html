@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide DECOCLIM Universel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'deco-green': {
+                            light: '#c8d82c',
+                            DEFAULT: '#abc026',
+                            dark: '#8aa01b',
+                        },
+                        'deco-blue': {
+                            DEFAULT: '#3b82f6', // Exemple de bleu
+                        },
+                         'deco-gray': {
+                            light: '#f3f4f6',
+                            DEFAULT: '#6b7280',
+                            dark: '#374151',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        .pose-btn { 
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #d1d5db;
+        }
+        .pose-btn.active {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .filter-btn { 
+            transition: all 0.2s ease-in-out; 
+            border: 1px solid #d1d5db;
+        }
+        .filter-btn.active {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .autocomplete-list {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #d1d5db;
+            border-top: none;
+            z-index: 1000;
+            max-height: 250px;
+            overflow-y: auto;
+            width: 100%;
+            border-radius: 0 0 0.75rem 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .autocomplete-item, .product-list-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .autocomplete-item:hover, .product-list-item:hover {
+            background-color: #f3f4f6;
+        }
+        .section-fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #abc026;
+            box-shadow: 0 0 0 2px rgba(171, 192, 38, 0.3);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+        }
+        .table-custom th, .table-custom td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .table-custom th {
+            text-align: left;
+            font-weight: 600;
+        }
+        .table-custom tr:last-child td {
+            border-bottom: none;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 24px;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="text-deco-gray-dark">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-deco-gray-dark tracking-tight">Outil de Préconisation DECOCLIM</h1>
+            <p class="mt-4 text-lg text-deco-gray max-w-3xl mx-auto">Un guide simple pour trouver la solution DECOCLIM parfaitement adaptée à votre installation.</p>
+        </header>
+
+        <main class="max-w-4xl mx-auto">
+
+            <div id="main-content">
+                <!-- Filtres et recherche -->
+                <section id="filters" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-12">
+                    <h2 class="text-2xl font-bold mb-4 text-center text-deco-gray-dark">1. Sélectionnez le type de produit</h2>
+                    <div id="product-type-filters" class="flex flex-wrap justify-center gap-4 mb-8">
+                         <button data-type="all" class="filter-btn active text-sm font-semibold py-2 px-4 rounded-full bg-gray-100 text-deco-gray-dark hover:bg-gray-200">Tout</button>
+                         <button data-type="PAC Air/Air" class="filter-btn text-sm font-semibold py-2 px-4 rounded-full bg-gray-100 text-deco-gray-dark hover:bg-gray-200">PAC Air/Air</button>
+                         <button data-type="PAC Air/Eau" class="filter-btn text-sm font-semibold py-2 px-4 rounded-full bg-gray-100 text-deco-gray-dark hover:bg-gray-200">PAC Air/Eau</button>
+                         <button data-type="PAC Piscine" class="filter-btn text-sm font-semibold py-2 px-4 rounded-full bg-gray-100 text-deco-gray-dark hover:bg-gray-200">PAC Piscine</button>
+                    </div>
+                    <div class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+                        <button id="open-search-modal" class="py-3 px-6 bg-deco-green text-white font-bold rounded-full shadow-lg hover:bg-deco-green-dark transition-colors w-full sm:w-auto text-center">Taper votre référence</button>
+                        <button id="open-select-modal" class="py-3 px-6 bg-deco-green text-white font-bold rounded-full shadow-lg hover:bg-deco-green-dark transition-colors w-full sm:w-auto text-center">Sélectionner votre référence</button>
+                    </div>
+                </section>
+                
+                <!-- Info Section: Charts and Guide -->
+                <section id="info-section" class="space-y-12">
+                    <section id="visualizations">
+                        <h2 class="text-3xl font-bold text-center mb-4 text-deco-gray-dark">Aperçu du Catalogue</h2>
+                        <p class="text-center text-deco-gray max-w-3xl mx-auto mb-8">Ces graphiques illustrent la répartition des modèles disponibles dans notre catalogue.</p>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                                <h3 class="text-xl font-bold mb-4 text-center text-deco-gray-dark">Répartition des Marques</h3>
+                                <div class="chart-container">
+                                    <canvas id="brandChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                                <h3 class="text-xl font-bold mb-4 text-center text-deco-gray-dark">Répartition des Tailles DECOCLIM (Estimation)</h3>
+                                <div class="chart-container">
+                                    <canvas id="sizeChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="deco-info">
+                        <h2 class="text-3xl font-bold text-center mb-4 text-deco-gray-dark">Guide DECOCLIM</h2>
+                        <p class="text-center text-deco-gray max-w-3xl mx-auto mb-6">Les caches DECOCLIM sont conçus pour s'adapter parfaitement aux unités extérieures. La gamme aluminium est disponible en 11 couleurs de stock et bénéficie d'une garantie de 10 ans.</p>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                            <h3 class="text-xl font-bold mb-4 text-center text-deco-gray-dark">Dimensions Intérieures DECOCLIM (mm)</h3>
+                            <div class="overflow-x-auto">
+                                <table class="table-custom w-full text-sm">
+                                    <thead>
+                                        <tr class="bg-gray-100">
+                                            <th class="rounded-tl-xl">Taille</th>
+                                            <th>Réf ALU</th>
+                                            <th class="rounded-tr-xl">Dimensions Int. (H x L x P)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td class="font-bold">S</td><td>23 AS (+code ral)</td><td>H 680 x L 900 x P 450-600 (ajustable)</td></tr>
+                                        <tr class="bg-gray-50"><td class="font-bold">S+</td><td>23 AS + Extension</td><td>H 980 x L 900 x P 450-600 (ajustable)</td></tr>
+                                        <tr><td class="font-bold">M</td><td>23 AM (+code ral)</td><td>H 850 x L 1050 x P 510-660 (ajustable)</td></tr>
+                                        <tr class="bg-gray-50"><td class="font-bold">M+</td><td>23 AM + Extension</td><td>H 1250 x L 1050 x P 510-660 (ajustable)</td></tr>
+                                        <tr><td class="font-bold">L</td><td>23 AL (+code ral)</td><td>H 950 x L 1100 x P 550-700 (ajustable)</td></tr>
+                                        <tr class="bg-gray-50"><td class="font-bold">L+</td><td>23 AL + Extension</td><td>H 1500 x L 1100 x P 550-700 (ajustable)</td></tr>
+                                        <tr><td class="font-bold">XL</td><td>23 AXL (+code ral)</td><td>H 1200 x L 1310 x P 650-800 (ajustable)</td></tr>
+                                        <tr><td class="font-bold">XXL</td><td>23 AXL (+code ral) <br>+23 AXXL (+code ral)</td><td>H 1700 x L 1310 x P 650-800 (ajustable)</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                </section>
+            </div>
+
+            <!-- Vue détaillée pour un seul produit + calcul -->
+            <div id="detailed-view" class="hidden">
+                <div class="flex justify-center mb-8">
+                    <button id="back-to-main-btn" class="py-2 px-6 bg-gray-200 text-deco-gray-dark font-semibold rounded-full hover:bg-gray-300 transition-colors">
+                        Retour au catalogue
+                    </button>
+                 </div>
+                <section id="step2-product-and-pose" class="section-fade-in">
+                     <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-200">
+                        <div class="flex justify-between items-center mb-6">
+                             <h2 class="text-2xl font-bold text-deco-gray-dark">Unité extérieure sélectionnée</h2>
+                        </div>
+                        <div id="product-card" class="bg-deco-gray-light border border-gray-200 rounded-xl p-6">
+                            <!-- Le contenu de la fiche produit sera injecté ici -->
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-200 mt-12">
+                        <h2 class="text-2xl font-bold mb-1 text-center text-deco-gray-dark">Étape 2 : Indiquez le type de pose</h2>
+                        <p class="text-center text-deco-gray mb-6">Choisissez une option pour affiner la préconisation.</p>
+                        <div id="pose-type-filters" class="flex flex-wrap justify-center gap-4 mb-8">
+                            <button data-pose="sol" class="pose-btn text-sm font-semibold py-2 px-5 rounded-full bg-white text-deco-gray-dark hover:bg-gray-100">Pose au sol</button>
+                            <button data-pose="mur" class="pose-btn text-sm font-semibold py-2 px-5 rounded-full bg-white text-deco-gray-dark hover:bg-gray-100">Fixation murale</button>
+                            <button data-pose="hauteur" class="pose-btn text-sm font-semibold py-2 px-5 rounded-full bg-white text-deco-gray-dark hover:bg-gray-100">Fixation en hauteur</button>
+                        </div>
+                        <div id="pose-inputs-container" class="hidden mt-6 space-y-4 max-w-md mx-auto"></div>
+                    </div>
+                </section>
+
+                <section id="step3-recommendation" class="hidden mt-12 section-fade-in">
+                     <div class="bg-blue-50 p-6 sm:p-8 rounded-2xl shadow-sm border-2 border-deco-blue">
+                        <h2 class="text-2xl font-bold mb-4 text-center text-deco-gray-dark">Étape 3 : Notre Recommandation</h2>
+                        <div id="recommendation-content"></div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modals -->
+    <div id="select-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-deco-gray-dark mb-4 text-center">Sélectionner un modèle</h3>
+            <ul id="product-list" class="space-y-1 max-h-80 overflow-y-auto border rounded-xl p-2"></ul>
+            <div class="flex justify-center mt-6">
+                <button id="close-select-modal-btn" class="py-2 px-6 bg-gray-200 text-deco-gray-dark font-semibold rounded-full hover:bg-gray-300 transition-colors">Fermer</button>
+            </div>
+        </div>
+    </div>
+    <div id="search-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-deco-gray-dark mb-4 text-center">Taper une référence</h3>
+            <div class="relative">
+                <input type="text" id="search-input-modal" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-deco-green" placeholder="Ex: Takao M3, Yutaki S...">
+                <ul id="autocomplete-list-modal" class="autocomplete-list hidden"></ul>
+            </div>
+            <div class="flex justify-center mt-6">
+                <button id="close-search-modal-btn" class="py-2 px-6 bg-gray-200 text-deco-gray-dark font-semibold rounded-full hover:bg-gray-300 transition-colors">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATABASE (Original full version restored) ---
+            const productData = [
+                { type: 'PAC Air/Air', brand: 'Atlantic', model: 'ASYG 7 KPC', power: 2.0, dims: '542x663x290' },
+                { type: 'PAC Air/Air', brand: 'Atlantic', model: 'ASYG 9 KPC', power: 2.5, dims: '542x663x290' },
+                { type: 'PAC Air/Air', brand: 'Atlantic', model: 'ASYG 12 KPC', power: 3.5, dims: '542x799x290' },
+                { type: 'PAC Air/Air', brand: 'Atlantic', model: 'ASYG 14 KPC', power: 4.2, dims: '542x799x290' },
+                { type: 'PAC Air/Air', brand: 'Bosch', model: 'Climate 3000i 2,6 kW', power: 2.6, dims: '495x720x270' },
+                { type: 'PAC Air/Air', brand: 'Bosch', model: 'Climate 3000i 3,5 kW', power: 3.5, dims: '495x720x270' },
+                { type: 'PAC Air/Air', brand: 'Bosch', model: 'Climate 5000i 5,3 kW', power: 5.3, dims: '554x805x330' },
+                { type: 'PAC Air/Air', brand: 'Bosch', model: 'Climate 5000i 7,0 kW', power: 7.0, dims: '702x845x363' },
+                { type: 'PAC Air/Air', brand: 'Daikin', model: 'FTXF20D / RXF20D', power: 2.0, dims: '550x658x275' },
+                { type: 'PAC Air/Air', brand: 'Daikin', model: 'FTXF25D / RXF25D', power: 2.5, dims: '550x658x275' },
+                { type: 'PAC Air/Air', brand: 'Daikin', model: 'FTXF35D / RXF35D', power: 3.5, dims: '550x658x275' },
+                { type: 'PAC Air/Air', brand: 'Daikin', model: 'FTXF42D / RXF42D', power: 4.2, dims: '550x765x285' },
+                { type: 'PAC Air/Air', brand: 'Daikin', model: '5MXM90N', power: 9.0, dims: '734x958x340' },
+                { type: 'PAC Air/Air', brand: 'Heiwa', model: 'Essentiel Zen 2', power: 2.0, dims: '498x777x290' },
+                { type: 'PAC Air/Air', brand: 'Heiwa', model: 'Essentiel Zen 2.6', power: 2.6, dims: '498x777x290' },
+                { type: 'PAC Air/Air', brand: 'Heiwa', model: 'Essentiel Zen 3.5', power: 3.5, dims: '553x850x360' },
+                { type: 'PAC Air/Air', brand: 'Heiwa', model: 'Essentiel Zen 5', power: 5.0, dims: '553x850x360' },
+                { type: 'PAC Air/Air', brand: 'Hitachi', model: 'RAK-DJ25PHAE / RAC-DJ25PHAE', power: 2.5, dims: '548x750x288' },
+                { type: 'PAC Air/Air', brand: 'Hitachi', model: 'RAK-DJ35PHAE / RAC-DJ35PHAE', power: 3.5, dims: '548x750x288' },
+                { type: 'PAC Air/Air', brand: 'Hitachi', model: 'RAK-DJ50PHAE / RAC-DJ50PHAE', power: 5.0, dims: '600x792x299' },
+                { type: 'PAC Air/Air', brand: 'Hitachi', model: 'RAM-G68N3HAE', power: 6.8, dims: '800x850x298' },
+                { type: 'PAC Air/Air', brand: 'Hitachi', model: 'RAM-G100N4HAE', power: 10.0, dims: '800x950x370' },
+                { type: 'PAC Air/Air', brand: 'Midea', model: 'Xtreme Save 2.6kW', power: 2.6, dims: '495x720x270' },
+                { type: 'PAC Air/Air', brand: 'Midea', model: 'Xtreme Save 3.5kW', power: 3.5, dims: '495x720x270' },
+                { type: 'PAC Air/Air', brand: 'Midea', model: 'Xtreme Save 5.3kW', power: 5.3, dims: '554x800x333' },
+                { type: 'PAC Air/Air', brand: 'Mitsubishi Electric', model: 'MSZ-AY25VGK / MUZ-AY25VG', power: 2.5, dims: '550x800x285' },
+                { type: 'PAC Air/Air', brand: 'Mitsubishi Electric', model: 'MSZ-AY35VGK / MUZ-AY35VG', power: 3.5, dims: '550x800x285' },
+                { type: 'PAC Air/Air', brand: 'Mitsubishi Electric', model: 'MSZ-AY42VGK / MUZ-AY42VG', power: 4.2, dims: '550x800x285' },
+                { type: 'PAC Air/Air', brand: 'Mitsubishi Electric', model: 'MSZ-AY50VGK / MUZ-AY50VG', power: 5.0, dims: '714x800x285' },
+                { type: 'PAC Air/Air', brand: 'Mitsubishi Electric', model: 'MXZ-6F120VF2', power: 12.0, dims: '1048x950x330' },
+                { type: 'PAC Air/Air', brand: 'Mitsubishi Electric', model: 'MXZ-8F140VF', power: 14.0, dims: '1338x1050x330' },
+                { type: 'PAC Air/Air', brand: 'Yack', model: 'Yack R32 2,6kW', power: 2.6, dims: '495x720x270' },
+                { type: 'PAC Air/Air', brand: 'Yack', model: 'Yack R32 3,5kW', power: 3.5, dims: '495x720x270' },
+                { type: 'PAC Air/Air', brand: 'Yack', model: 'Yack R32 5,2kW', power: 5.2, dims: '554x800x333' },
+                { type: 'PAC Air/Air', brand: 'Yack', model: 'Yack R32 7,0kW', power: 7.0, dims: '702x845x363' },
+                { type: 'PAC Air/Eau', brand: 'Atlantic', model: 'Alfea Extensa A.I. 5', power: 5.0, dims: '754x934x440' },
+                { type: 'PAC Air/Eau', brand: 'Atlantic', model: 'Alfea Extensa A.I. 8', power: 8.0, dims: '754x934x440' },
+                { type: 'PAC Air/Eau', brand: 'Daikin', model: 'Altherma 3 R F - 4 kW', power: 4.0, dims: '740x884x388' },
+                { type: 'PAC Air/Eau', brand: 'Daikin', model: 'Altherma 3 R F - 6 kW', power: 6.0, dims: '740x884x388' },
+                { type: 'PAC Air/Eau', brand: 'Daikin', model: 'Altherma 3 R F - 8 kW', power: 8.0, dims: '740x884x388' },
+                { type: 'PAC Air/Eau', brand: 'Hitachi', model: 'Yutaki S Combi 2.0', power: 4.3, dims: '600x792x300' },
+                { type: 'PAC Air/Eau', brand: 'Hitachi', model: 'Yutaki S Combi 3.0', power: 6.0, dims: '600x792x300' },
+                { type: 'PAC Air/Eau', brand: 'Hitachi', model: 'Yutaki S Combi 4.0', power: 8.0, dims: '799x950x370' },
+                { type: 'PAC Air/Eau', brand: 'Mitsubishi Electric', model: 'Ecodan Hydrobox Duo (PUZ-WM50VHA)', power: 5.0, dims: '550x800x285' },
+                { type: 'PAC Air/Eau', brand: 'Mitsubishi Electric', model: 'Ecodan Hydrobox Duo (PUZ-WM85VHA)', power: 8.5, dims: '880x1050x480' },
+                { type: 'PAC Air/Eau', brand: 'Midea', model: 'M-Thermal 4 kW', power: 4.0, dims: '810x946x410' },
+                { type: 'PAC Air/Eau', brand: 'Midea', model: 'M-Thermal 6 kW', power: 6.0, dims: '810x946x410' },
+                { type: 'PAC Air/Eau', brand: 'Midea', model: 'M-Thermal 8 kW', power: 8.0, dims: '810x946x410' },
+                { type: 'PAC Piscine', brand: 'Flowdians', model: 'PFI Inverter 6 kW', power: 6, dims: '605x1000x418' },
+                { type: 'PAC Piscine', brand: 'Flowdians', model: 'PFI Inverter 8 kW', power: 8, dims: '605x1000x418' },
+                { type: 'PAC Piscine', brand: 'Flowdians', model: 'PFI Inverter 11 kW', power: 11, dims: '605x1000x418' },
+                { type: 'PAC Piscine', brand: 'Flowdians', model: 'PFI Inverter 15 kW', power: 15, dims: '768x1047x453' },
+                { type: 'PAC Piscine', brand: 'Hayward', model: 'Powerline EcoPac 406', power: 6, dims: '540x864x420' },
+                { type: 'PAC Piscine', brand: 'Hayward', model: 'Powerline EcoPac 558', power: 8, dims: '460x1004x648' },
+                { type: 'PAC Piscine', brand: 'Zodiac', model: 'Zodiac Z200 M2', power: 6.7, dims: '666x840x385' },
+                { type: 'PAC Piscine', brand: 'Zodiac', model: 'Zodiac Power Inverter 5', power: 4.6, dims: '646x823x339' },
+                { type: 'PAC Piscine', brand: 'Zodiac', model: 'Zodiac Power First Premium 6', power: 6.9, dims: '840x950x465' },
+                { type: 'PAC Piscine', brand: 'Poolstar', model: 'Nano Action 3 kW', power: 3, dims: '385x400x280' },
+                { type: 'PAC Piscine', brand: 'Poolstar', model: 'Nano Action Réversible 5 kW', power: 5, dims: '385x400x280' },
+                { type: 'PAC Piscine', brand: 'Poolstar', model: 'Jet City 55', power: 5.4, dims: '505x705x490' },
+            ];
+            const decoDims = {
+                'S': { H: 680, L: 900, P_max: 600, link: 'https://www.decoclim.fr/12-decoclim#/taille-s/materiau-alu', displayName: 'Taille S' },
+                'M': { H: 850, L: 1050, P_max: 660, link: 'https://www.decoclim.fr/12-decoclim#/taille-m/materiau-alu', displayName: 'Taille M' },
+                'L': { H: 950, L: 1100, P_max: 700, link: 'https://www.decoclim.fr/12-decoclim#/taille-l/materiau-alu', displayName: 'Taille L' },
+                'XL': { H: 1200, L: 1310, P_max: 800, link: 'https://www.decoclim.fr/12-decoclim#/taille-xl/materiau-alu', displayName: 'Taille XL' },
+                'XXL': { H: 1700, L: 1310, P_max: 800, link: 'https://www.decoclim.fr/12-decoclim#/taille-xxl/materiau-alu', displayName: 'Taille XXL' }
+            };
+            const extensionHeights = { 'S': 300, 'M': 400, 'L': 550 };
+
+            // --- DOM ELEMENTS ---
+            const mainContent = document.getElementById('main-content');
+            const detailedView = document.getElementById('detailed-view');
+            const productCard = document.getElementById('product-card');
+            const resetBtn = document.getElementById('back-to-main-btn');
+            const poseInputsContainer = document.getElementById('pose-inputs-container');
+            const recommendationContent = document.getElementById('recommendation-content');
+            
+            // --- STATE ---
+            let appState = {
+                selectedProduct: null,
+                poseType: null,
+                supportHeight: 0,
+                wallDistance: 0,
+                mountingHeight: 0,
+                currentFilter: 'all'
+            };
+            let filteredData = [...productData];
+
+            // --- FUNCTIONS ---
+            
+            const showMainView = () => {
+                mainContent.classList.remove('hidden');
+                detailedView.classList.add('hidden');
+                document.body.style.overflow = '';
+            };
+
+            const showDetailedView = () => {
+                mainContent.classList.add('hidden');
+                detailedView.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            const selectProduct = (product) => {
+                appState.selectedProduct = product;
+                renderProductCard();
+                resetPoseSelection();
+                showDetailedView();
+            };
+
+            const renderProductCard = () => {
+                const item = appState.selectedProduct;
+                if (!item) return;
+
+                productCard.innerHTML = `
+                    <h3 class="text-xl font-bold text-deco-gray-dark">${item.brand} - ${item.model}</h3>
+                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-deco-gray">Puissance (kW)</p>
+                            <p class="font-semibold text-deco-gray-dark">${item.power}</p>
+                        </div>
+                        <div>
+                            <p class="text-deco-gray">Dimensions Unité Extérieure (HxLxP)</p>
+                            <p class="font-semibold text-deco-gray-dark">${item.dims.replace(/x/g, ' x ')} mm</p>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <button id="google-search-btn" class="inline-flex items-center text-sm font-semibold text-white bg-deco-green hover:bg-deco-green-dark py-2 px-4 rounded-lg transition-colors">
+                            Vérifier sur Google
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        </button>
+                    </div>
+                `;
+                 document.getElementById('google-search-btn').addEventListener('click', () => {
+                    const searchText = `fiche technique ${item.brand} ${item.model}`;
+                    const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(searchText)}`;
+                    window.open(googleUrl, '_blank');
+                });
+            };
+
+            const renderPoseInputs = () => {
+                const { poseType } = appState;
+                poseInputsContainer.innerHTML = '';
+                if (!poseType) {
+                    poseInputsContainer.classList.add('hidden');
+                    return;
+                }
+
+                let inputsHTML = `
+                    <div>
+                        <label for="supportHeight" class="block text-sm font-medium text-deco-gray mb-1">Hauteur du support (mm)</label>
+                        <input type="number" id="supportHeight" class="form-input" value="${appState.supportHeight}">
+                    </div>
+                `;
+                if (poseType === 'mur' || poseType === 'hauteur') {
+                    inputsHTML += `
+                        <div>
+                            <label for="wallDistance" class="block text-sm font-medium text-deco-gray mb-1">Distance mur/unité (mm)</label>
+                            <input type="number" id="wallDistance" class="form-input" value="${appState.wallDistance}">
+                        </div>
+                    `;
+                }
+                if (poseType === 'hauteur') {
+                     inputsHTML += `
+                        <div>
+                            <label for="mountingHeight" class="block text-sm font-medium text-deco-gray mb-1">Hauteur de fixation / sol (mm)</label>
+                            <input type="number" id="mountingHeight" class="form-input" value="${appState.mountingHeight}">
+                        </div>
+                    `;
+                }
+                poseInputsContainer.innerHTML = inputsHTML;
+                poseInputsContainer.classList.remove('hidden');
+
+                document.getElementById('supportHeight').addEventListener('input', (e) => handleInputChange('supportHeight', e.target.value));
+                if (document.getElementById('wallDistance')) {
+                    document.getElementById('wallDistance').addEventListener('input', (e) => handleInputChange('wallDistance', e.target.value));
+                }
+                if (document.getElementById('mountingHeight')) {
+                    document.getElementById('mountingHeight').addEventListener('input', (e) => handleInputChange('mountingHeight', e.target.value));
+                }
+            };
+            
+            const handleInputChange = (key, value) => {
+                appState[key] = parseInt(value, 10) || 0;
+                calculateAndRecommend();
+            };
+
+            const calculateAndRecommend = () => {
+                const step3Section = document.getElementById('step3-recommendation');
+                if (!appState.selectedProduct || !appState.poseType) {
+                    step3Section.classList.add('hidden');
+                    return;
+                };
+
+                const [unitH, unitL, unitP] = appState.selectedProduct.dims.split('x').map(d => parseInt(d, 10));
+                
+                const totalH = unitH + appState.supportHeight;
+                const totalL = unitL;
+                const totalP = unitP + appState.wallDistance;
+
+                const recommendations = findBestDecoSize([totalH, totalL, totalP]);
+                const accessories = findAccessories();
+                
+                renderRecommendation({ totalH, totalL, totalP }, recommendations, accessories);
+                step3Section.classList.remove('hidden');
+                step3Section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
+
+            const findBestDecoSize = ([h, l, p]) => {
+                const solutions = [];
+                const sizeOrder = ['S', 'M', 'L', 'XL', 'XXL'];
+                const extensionableSizes = ['S', 'M', 'L'];
+
+                for (const size of sizeOrder) {
+                    const deco = decoDims[size];
+                    if (h <= deco.H && l <= deco.L && p <= deco.P_max) {
+                        solutions.push({ name: deco.displayName, link: deco.link, note: '' });
+                        break; 
+                    }
+                }
+
+                for (const size of extensionableSizes) {
+                    const deco = decoDims[size];
+                    if (h > deco.H && h <= (deco.H + extensionHeights[size]) && l <= deco.L && p <= deco.P_max) {
+                        const extensionLink = `https://www.decoclim.fr/12-decoclim#/taille-${size.toLowerCase()}plus`;
+                        const extensionFit = { 
+                            name: `${deco.displayName} + Extension*`, 
+                            link: extensionLink, 
+                            note: 'Cette option combine une taille standard avec une réhausse.' 
+                        };
+                        solutions.push(extensionFit);
+                    }
+                }
+                
+                if (solutions.length === 0) {
+                     for (const size of [...sizeOrder].reverse()) {
+                         const deco = decoDims[size];
+                         if (l <= deco.L && p <= deco.P_max) {
+                            solutions.push({ name: `${deco.displayName}*`, link: deco.link, note: '*La hauteur de l\'installation dépasse la taille standard. Validez la compatibilité.' });
+                            break; 
+                         }
+                     }
+                 }
+                
+                return Array.from(new Set(solutions.map(s => s.name))).map(name => {
+                    return solutions.find(s => s.name === name);
+                });
+            };
+
+            const findAccessories = () => {
+                const accessories = [];
+                if (appState.poseType === 'sol') {
+                    accessories.push('Face de dos');
+                }
+                if (appState.poseType === 'hauteur' && appState.mountingHeight > 1000) {
+                    accessories.push('Face de dessous');
+                }
+                return accessories;
+            };
+            
+            const renderRecommendation = (totals, recommendations, accessories) => {
+                let content = `
+                    <div class="mb-6">
+                        <h3 class="font-semibold text-lg text-deco-gray-dark">Dimensions hors-tout de l'installation :</h3>
+                        <p class="text-deco-gray">Hauteur: <span class="font-bold text-deco-blue">${totals.totalH} mm</span> | Largeur: <span class="font-bold text-deco-blue">${totals.totalL} mm</span> | Profondeur: <span class="font-bold text-deco-blue">${totals.totalP} mm</span></p>
+                    </div>
+                `;
+
+                if (recommendations.length > 0) {
+                    content += `<h3 class="font-semibold text-lg text-deco-gray-dark mt-4">Modèle(s) DECOCLIM suggéré(s) :</h3><div class="mt-3 space-y-3">`;
+                    recommendations.forEach(rec => {
+                        content += `
+                            <div class="bg-white p-4 rounded-lg border">
+                                <a href="${rec.link}" target="_blank" rel="noopener" class="font-bold text-lg text-deco-blue hover:underline">${rec.name}</a>
+                                ${rec.note ? `<p class="text-sm text-deco-gray mt-1">${rec.note}</p>` : ''}
+                            </div>
+                        `;
+                    });
+                    content += '</div>';
+                } else {
+                    content += `<div class="mt-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg"><p class="font-bold">Aucune taille standard DECOCLIM ne semble correspondre. Veuillez nous contacter pour une solution sur mesure.</p></div>`;
+                }
+
+                if (accessories.length > 0) {
+                    content += `<h3 class="font-semibold text-lg text-deco-gray-dark mt-6">Accessoires recommandés :</h3><ul class="list-disc list-inside space-y-1 mt-2 text-deco-gray">`;
+                    accessories.forEach(acc => {
+                        content += `<li>${acc}</li>`;
+                    });
+                    content += '</ul>';
+                }
+                
+                recommendationContent.innerHTML = content;
+            };
+
+            const getEstimatedDecoSizeName = (product) => {
+                const [h, l, p] = product.dims.split('x').map(d => parseInt(d, 10));
+                const sizeOrder = ['S', 'M', 'L', 'XL', 'XXL'];
+                for (const size of sizeOrder) {
+                    const deco = decoDims[size];
+                    if (h <= deco.H && l <= deco.L && p <= deco.P_max) {
+                        return deco.displayName;
+                    }
+                }
+                return 'Sur Mesure';
+            };
+            
+            const brandColorMap = {
+                'Flowdians': '#fbbf24', 'Hayward': '#22d3ee', 'Zodiac': '#818cf8',
+                'Poolstar': '#f87171', 'Daikin': '#60a5fa', 'Mitsubishi Electric': '#ef4444',
+                'Atlantic': '#fb923c', 'Bosch': '#14b8a6', 'Midea': '#9ca3af',
+                'Heiwa': '#a855f7', 'Yack': '#abc026', 'Hitachi': '#fb7185',
+                'De Dietrich': '#f87171'
+            };
+
+            let charts = {};
+            const renderCharts = (data) => {
+                if(charts.brandChart) charts.brandChart.destroy();
+                if(charts.sizeChart) charts.sizeChart.destroy();
+
+                const dataToRender = data || productData;
+
+                const brandCounts = dataToRender.reduce((acc, p) => {
+                    acc[p.brand] = (acc[p.brand] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const brandLabels = Object.keys(brandCounts);
+                const brandData = Object.values(brandCounts);
+                const brandColors = brandLabels.map(brand => brandColorMap[brand] || '#9ca3af');
+                const brandCtx = document.getElementById('brandChart').getContext('2d');
+                charts.brandChart = new Chart(brandCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: brandLabels,
+                        datasets: [{
+                            label: 'Nombre de Modèles',
+                            data: brandData,
+                            backgroundColor: brandColors,
+                        }]
+                    },
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+
+                const sizeCounts = dataToRender.reduce((acc, p) => {
+                    const estimatedSize = getEstimatedDecoSizeName(p);
+                    acc[estimatedSize] = (acc[estimatedSize] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const sortOrder = ['Taille S', 'Taille M', 'Taille L', 'Taille XL', 'Taille XXL', 'Sur Mesure'];
+                const sizeLabels = Object.keys(sizeCounts).sort((a, b) => sortOrder.indexOf(a) - sortOrder.indexOf(b));
+                const sizeData = sizeLabels.map(label => sizeCounts[label]);
+
+                const sizeCtx = document.getElementById('sizeChart').getContext('2d');
+                charts.sizeChart = new Chart(sizeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: sizeLabels,
+                        datasets: [{
+                            data: sizeData,
+                            backgroundColor: ['#fecaca', '#bfdbfe', '#a7f3d0', '#a5b4fc', '#fbcfe8', '#e5e7eb'],
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+                });
+            };
+
+            const resetPoseSelection = () => {
+                const step3Section = document.getElementById('step3-recommendation');
+                appState.poseType = null;
+                appState.supportHeight = 0;
+                appState.wallDistance = 0;
+                appState.mountingHeight = 0;
+                document.querySelectorAll('#detailed-view .pose-btn').forEach(btn => btn.classList.remove('active'));
+                poseInputsContainer.classList.add('hidden');
+                step3Section.classList.add('hidden');
+            };
+
+            const populateProductList = () => {
+                const productList = document.getElementById('product-list');
+                productList.innerHTML = '';
+                 const currentData = productData.filter(item => appState.currentFilter === 'all' || item.type === appState.currentFilter);
+                
+                const grouped = currentData.reduce((acc, item) => {
+                    if (!acc[item.brand]) {
+                        acc[item.brand] = [];
+                    }
+                    acc[item.brand].push(item);
+                    return acc;
+                }, {});
+
+                Object.keys(grouped).sort().forEach(brand => {
+                    const groupTitle = document.createElement('li');
+                    groupTitle.className = 'text-md font-bold text-deco-gray-dark mt-3 mb-1 px-2 sticky top-0 bg-gray-100';
+                    groupTitle.textContent = brand;
+                    productList.appendChild(groupTitle);
+                    
+                    grouped[brand].sort((a, b) => a.model.localeCompare(b.model)).forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'product-list-item rounded-lg';
+                        li.innerHTML = `${item.model} (${item.power} kW)`;
+                        li.addEventListener('click', () => {
+                            selectProduct(item);
+                            document.getElementById('select-modal').style.display = 'none';
+                        });
+                        productList.appendChild(li);
+                    });
+                });
+            };
+            
+            // --- EVENT LISTENERS ---
+            resetBtn.addEventListener('click', showMainView);
+
+            document.querySelectorAll('#detailed-view .pose-btn').forEach(button => {
+                button.addEventListener('click', e => {
+                    const selectedPose = e.target.dataset.pose;
+                    appState.poseType = selectedPose;
+                    document.querySelectorAll('#detailed-view .pose-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderPoseInputs();
+                    calculateAndRecommend();
+                });
+            });
+
+            // Type Filters
+            document.querySelectorAll('#product-type-filters button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    appState.currentFilter = e.target.dataset.type;
+                    if (appState.currentFilter === 'all') {
+                        filteredData = [...productData];
+                    } else {
+                        filteredData = productData.filter(p => p.type === appState.currentFilter);
+                    }
+                    renderCharts(filteredData);
+
+                    document.querySelectorAll('#product-type-filters button').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                });
+            });
+
+            // Modals
+            const selectModal = document.getElementById('select-modal');
+            const searchModal = document.getElementById('search-modal');
+            document.getElementById('open-select-modal').addEventListener('click', () => {
+                populateProductList();
+                selectModal.style.display = 'flex';
+            });
+             document.getElementById('open-search-modal').addEventListener('click', () => {
+                searchModal.style.display = 'flex';
+                document.getElementById('search-input-modal').focus();
+            });
+            document.getElementById('close-select-modal-btn').addEventListener('click', () => selectModal.style.display = 'none');
+            document.getElementById('close-search-modal-btn').addEventListener('click', () => searchModal.style.display = 'none');
+            window.addEventListener('click', (e) => {
+                if (e.target === selectModal) selectModal.style.display = 'none';
+                if (e.target === searchModal) searchModal.style.display = 'none';
+            });
+
+            // Autocomplete in Modal
+            const searchInputModal = document.getElementById('search-input-modal');
+            const autocompleteListModal = document.getElementById('autocomplete-list-modal');
+            searchInputModal.addEventListener('input', () => {
+                const query = searchInputModal.value.toLowerCase();
+                autocompleteListModal.innerHTML = '';
+                if (query.length < 2) {
+                     autocompleteListModal.classList.add('hidden');
+                    return;
+                }
+                const matches = productData.filter(item => 
+                    item.model.toLowerCase().includes(query) || 
+                    item.brand.toLowerCase().includes(query)
+                );
+                
+                if(matches.length > 0) {
+                    matches.slice(0, 7).forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'autocomplete-item';
+                        li.innerHTML = `<span class="font-semibold">${item.brand}</span> - ${item.model} (${item.power} kW)`;
+                        li.addEventListener('click', () => {
+                            selectProduct(item);
+                            searchModal.style.display = 'none';
+                            searchInputModal.value = '';
+                            autocompleteListModal.classList.add('hidden');
+                        });
+                        autocompleteListModal.appendChild(li);
+                    });
+                    autocompleteListModal.classList.remove('hidden');
+                } else {
+                    autocompleteListModal.classList.add('hidden');
+                }
+            });
+
+
+            // --- INITIALIZATION ---
+            showMainView();
+            renderCharts(productData);
+        });
+    </script>
+</body>
+</html>
+
